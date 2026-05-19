@@ -2,10 +2,10 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
-import authRoute from './routes/auth.js';
-import problemsRoute from './routes/problems.js';
-
+import authRoute from './routes/authRoutes.js';
+import problemsRoute from './routes/problemsRoutes.js';
+import tagRoute from './routes/tagsRoutes.js'
+import categoryRoutes from './routes/categoryRoutes.js'
 dotenv.config();
 const app = express();
 
@@ -16,6 +16,8 @@ app.use(cors());
 // Route Middlewares
 app.use('/api/user', authRoute);
 app.use('/api/problems', problemsRoute);
+app.use('/api/tag',tagRoute)
+app.use('/api/category',categoryRoutes)
 
 const PORT = process.env.PORT || 5000;
 
