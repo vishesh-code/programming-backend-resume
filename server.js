@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
@@ -6,7 +8,8 @@ import authRoute from './routes/authRoutes.js';
 import problemsRoute from './routes/problemsRoutes.js';
 import tagRoute from './routes/tagsRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
-dotenv.config();
+import uploadRoutes from './routes/uploadRoutes.js'
+
 const app = express();
 
 // Middleware
@@ -18,6 +21,10 @@ app.use('/api/user', authRoute);
 app.use('/api/problems', problemsRoute);
 app.use('/api/tag',tagRoute)
 app.use('/api/category',categoryRoutes)
+app.use('/api/upload', uploadRoutes);
+
+
+
 
 const PORT = process.env.PORT || 5000;
 
