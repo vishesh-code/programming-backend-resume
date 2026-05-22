@@ -9,7 +9,7 @@ import problemsRoute from './routes/problemsRoutes.js';
 import tagRoute from './routes/tagsRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
-
+import notesRoute from './routes/notesRoutes.js'; // <-- 1. Import it here
 const app = express();
 
 // Middleware
@@ -22,7 +22,7 @@ app.use('/api/problems', problemsRoute);
 app.use('/api/tag',tagRoute)
 app.use('/api/category',categoryRoutes)
 app.use('/api/upload', uploadRoutes);
-
+app.use('/api/notes', notesRoute);
 
 
 

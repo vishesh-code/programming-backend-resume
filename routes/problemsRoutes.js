@@ -78,16 +78,53 @@ import verify from '../middlewares/authMiddleware.js';
 const router = express.Router();
 
 // GET ALL PROBLEMS (for the logged-in user)
+// router.get('/', verify, async (req, res) => {
+//   try {
+    
+//     const problems = await Problem.find({ user: req.user._id })
+//       .populate('category', 'name slug')
+//       .populate('tags', 'name slug')     
+//       .sort({ createdAt: -1 });          
+
+//     res.json(problems);
+//   } catch (err) {
+//     res.status(500).json({ message: "Server Error", error: err.message });
+//   }
+// });
+
+
+// GET ALL PROBLEMS (for the logged-in user)
 router.get('/', verify, async (req, res) => {
   try {
-    // Find problems for this user
-    // .populate() replaces the ID references with the actual document data
-    const problems = await Problem.find({ user: req.user._id })
-      .populate('category', 'name slug') // Get category name & slug
-      .populate('tags', 'name slug')     // Get tag names & slugs
-      .sort({ createdAt: -1 });          // Newest first
+    // 1. Support optional pagination from the frontend
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
 
-    res.json(problems);
+    let query = Problem.find({ user: req.user._id })
+      .populate('category', 'name slug') 
+      .populate('tags', 'name slug')     
+      .sort({ createdAt: -1 });
+
+    // If pagination is requested via API
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      query = query.skip(skip).limit(limit);
+    }
+
+    // Execute query and count total
+    const [problems, total] = await Promise.all([
+      query,
+      Problem.countDocuments({ user: req.user._id })
+    ]);
+
+    // 2. Return an object with both the array and pagination metadata
+    res.json({
+      problems: problems,
+      total: total,
+      currentPage: page || 1,
+      totalPages: limit ? Math.ceil(total / limit) : 1
+    });
+
   } catch (err) {
     res.status(500).json({ message: "Server Error", error: err.message });
   }
@@ -158,13 +195,19 @@ router.patch('/:id/toggle-solved', verify, async (req, res) => {
     const problem = await Problem.findOne({ _id: req.params.id, user: req.user._id });
     
     if (!problem) {
-      return res.status(404).send("Problem not found");
+      return res.status(404).json({ message: "Problem not found" }); // send json
     }
 
+    // Toggle and save
     problem.solved = !problem.solved;
-    const updatedProblem = await problem.save();
+    await problem.save();
     
-    res.json(updatedProblem);
+    // 🔥 FIX: Only return the ID and the new status to the frontend!
+    res.json({ 
+      message: "Status updated successfully",
+      _id: problem._id,
+      solved: problem.solved 
+    });
   } catch (err) {
     res.status(400).json({ message: "Error updating status", error: err.message });
   }
