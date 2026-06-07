@@ -9,7 +9,11 @@ import problemsRoute from './routes/problemsRoutes.js';
 import tagRoute from './routes/tagsRoutes.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
-import notesRoute from './routes/notesRoutes.js'; // <-- 1. Import it here
+import notesRoute from './routes/notesRoutes.js';
+import adminUserRoutes from './routes/admin/userRoutes.js';
+import adminFileRoutes from './routes/admin/fileRoutes.js';
+import adminNoteRoutes from './routes/admin/noteRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 const app = express();
 
 // Middleware
@@ -23,9 +27,10 @@ app.use('/api/tag',tagRoute)
 app.use('/api/category',categoryRoutes)
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notes', notesRoute);
-
-
-
+app.use('/api/admin/users', adminUserRoutes);
+app.use('/api/admin/files', adminFileRoutes);
+app.use('/api/admin/notes', adminNoteRoutes);
+app.use('/api/ai', aiRoutes);
 const PORT = process.env.PORT || 5000;
 
 // Database Connection & Server Start

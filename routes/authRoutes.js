@@ -130,6 +130,35 @@ router.post("/register", async (req, res) => {
 // -----------------------------------------
 // 2. STANDARD LOGIN (Your existing code)
 // -----------------------------------------
+// router.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+
+//   try {
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(400).json({ success: false, message: "Email not found", field: "email" });
+//     }
+    
+//     // Check if user is a Google-only user who hasn't set a password
+//     if (!user.password) {
+//       return res.status(400).json({ success: false, message: "Please login with Google" });
+//     }
+
+//     const validPass = await bcrypt.compare(password, user.password);
+//     if (!validPass) {
+//       return res.status(400).json({ success: false, message: "Invalid password", field: "password" });
+//     }
+
+//     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    
+//     return res.status(200).json({ success: true, message: "Login successful", token, user: { id: user._id, email: user.email } });
+//   } catch (err) {
+//     return res.status(500).json({ success: false, message: "Error logging in", error: err.message });
+//   }
+// });
+
+
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -137,6 +166,10 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ success: false, message: "Email not found", field: "email" });
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({ success: false, message: "Your account has been deactivated by the admin." });
     }
     
     // Check if user is a Google-only user who hasn't set a password
@@ -149,17 +182,118 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid password", field: "password" });
     }
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // 🔥 NEW: Check if this user is the ONE admin from your .env file
+    const isSuperAdmin = user.email === process.env.ADMIN_EMAIL;
+    const userRole = isSuperAdmin ? 'admin' : 'user';
+
+    // 🔥 NEW: Add the userRole to the JWT Token payload
+    const token = jwt.sign(
+      { _id: user._id, role: userRole }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1h" }
+    );
     
-    return res.status(200).json({ success: true, message: "Login successful", token, user: { id: user._id, email: user.email } });
+    // 🔥 NEW: Send the role back to the React frontend
+    return res.status(200).json({ 
+      success: true, 
+      message: "Login successful", 
+      token, 
+      user: { 
+        id: user._id, 
+        email: user.email,
+        role: userRole // React will use this to navigate to /dashboard or /admin
+      } 
+    });
   } catch (err) {
     return res.status(500).json({ success: false, message: "Error logging in", error: err.message });
   }
 });
-
 // -----------------------------------------
 // 3. GOOGLE LOGIN ROUTE
 // -----------------------------------------
+// router.post("/google-login", async (req, res) => {
+//   const { token } = req.body; 
+
+//   try {
+//     const ticket = await client.verifyIdToken({
+//       idToken: token,
+//       audience: process.env.GOOGLE_CLIENT_ID,
+//     });
+    
+//     const { email, sub: googleId } = ticket.getPayload();
+//     let user = await User.findOne({ email });
+
+//     if (!user) {
+//       // Create new user if they don't exist
+//       user = new User({ email, googleId });
+//       await user.save();
+//     } else if (!user.googleId) {
+//       // Link Google ID if user exists from standard register
+//       user.googleId = googleId;
+//       await user.save();
+//     }
+
+//     // Generate JWT for the frontend to use
+//     const jwtToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+//     return res.status(200).json({ success: true, message: "Google login successful", token: jwtToken, user: { id: user._id, email: user.email } });
+//   } catch (err) {
+//     return res.status(400).json({ success: false, message: "Invalid Google Token", error: err.message });
+//   }
+// });
+
+
+// router.post("/google-login", async (req, res) => {
+//   const { token } = req.body; 
+
+//   try {
+//     const ticket = await client.verifyIdToken({
+//       idToken: token,
+//       audience: process.env.GOOGLE_CLIENT_ID,
+//     });
+    
+//     const { email, sub: googleId } = ticket.getPayload();
+//     let user = await User.findOne({ email });
+
+//     if (!user) {
+//       // Create new user if they don't exist
+//       user = new User({ email, googleId });
+//       await user.save();
+//     } else if (!user.googleId) {
+//       // Link Google ID if user exists from standard register
+//       user.googleId = googleId;
+//       await user.save();
+//     }
+
+//     // 🔥 NEW: Check if this Google user is the ONE admin from your .env file
+//     const isSuperAdmin = user.email === process.env.ADMIN_EMAIL;
+//     const userRole = isSuperAdmin ? 'admin' : 'user';
+
+//     // 🔥 NEW: Generate JWT with the role included
+//     const jwtToken = jwt.sign(
+//       { _id: user._id, role: userRole }, 
+//       process.env.JWT_SECRET, 
+//       { expiresIn: "1h" }
+//     );
+
+//     // 🔥 NEW: Send the role back to the frontend in the user object
+//     return res.status(200).json({ 
+//       success: true, 
+//       message: "Google login successful", 
+//       token: jwtToken, 
+//       user: { 
+//         id: user._id, 
+//         email: user.email,
+//         role: userRole // React will use this to navigate to /dashboard or /admin
+//       } 
+//     });
+//   } catch (err) {
+//     return res.status(400).json({ success: false, message: "Invalid Google Token", error: err.message });
+//   }
+// });
+
+
+
 router.post("/google-login", async (req, res) => {
   const { token } = req.body; 
 
@@ -182,14 +316,42 @@ router.post("/google-login", async (req, res) => {
       await user.save();
     }
 
-    // Generate JWT for the frontend to use
-    const jwtToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // 🔥 NEW: Check if the user is deactivated before proceeding
+    if (user.isActive === false) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Your account has been deactivated by the admin." 
+      });
+    }
 
-    return res.status(200).json({ success: true, message: "Google login successful", token: jwtToken, user: { id: user._id, email: user.email } });
+    // Check if this Google user is the ONE admin from your .env file
+    const isSuperAdmin = user.email === process.env.ADMIN_EMAIL;
+    const userRole = isSuperAdmin ? 'admin' : 'user';
+
+    // Generate JWT with the role included
+    const jwtToken = jwt.sign(
+      { _id: user._id, role: userRole }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1h" }
+    );
+
+    // Send the role back to the frontend in the user object
+    return res.status(200).json({ 
+      success: true, 
+      message: "Google login successful", 
+      token: jwtToken, 
+      user: { 
+        id: user._id, 
+        email: user.email,
+        role: userRole // React will use this to navigate to /dashboard or /admin
+      } 
+    });
   } catch (err) {
     return res.status(400).json({ success: false, message: "Invalid Google Token", error: err.message });
   }
 });
+
+
 
 // -----------------------------------------
 // 4. FORGOT PASSWORD (Send Email)
