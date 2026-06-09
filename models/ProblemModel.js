@@ -72,6 +72,53 @@
 
 
 
+// import mongoose from 'mongoose';
+
+// const problemSchema = new mongoose.Schema({
+//   user: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'User',
+//     required: true
+//   },
+//   question: { type: String, required: true },
+//   description: { type: String },
+  
+//   // --- UPDATED: Replaced 'solution' string with 'solutions' array ---
+//   solutions: [{
+//     title: { type: String, required: true, default: 'Approach 1' }, // e.g., "Brute Force" or "Optimized"
+//     code: { type: String, required: true },
+//     language: { type: String, default: 'javascript' } // Optional: useful if you add multi-language support
+//   }],
+//   // ----------------------------------------------------------------
+
+//   difficulty: {
+//     type: String,
+//     enum: ['Easy', 'Medium', 'Hard'],
+//     default: 'Medium'
+//   },
+//   category: { 
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Category',
+//     required: true 
+//   },
+//   tags: [{ 
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: 'Tag' 
+//   }],
+//   time_complexity: { type: String },
+//   space_complexity: { type: String },
+//   solved: {
+//     type: Boolean,
+//     default: false
+//   },
+//   solvedAt: { type: Date, default: null }
+// }, { timestamps: true });
+
+// const Problem = mongoose.model('Problem', problemSchema);
+
+// export default Problem;
+
+
 import mongoose from 'mongoose';
 
 const problemSchema = new mongoose.Schema({
@@ -83,35 +130,52 @@ const problemSchema = new mongoose.Schema({
   question: { type: String, required: true },
   description: { type: String },
   
-  // --- UPDATED: Replaced 'solution' string with 'solutions' array ---
+  // Array to hold multiple solutions with language support
   solutions: [{
-    title: { type: String, required: true, default: 'Approach 1' }, // e.g., "Brute Force" or "Optimized"
+    title: { type: String, required: true, default: 'Approach 1' },
     code: { type: String, required: true },
-    language: { type: String, default: 'javascript' } // Optional: useful if you add multi-language support
+    language: { type: String, default: 'javascript' } 
   }],
-  // ----------------------------------------------------------------
 
   difficulty: {
     type: String,
     enum: ['Easy', 'Medium', 'Hard'],
     default: 'Medium'
   },
+  
   category: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
     required: true 
   },
+  
   tags: [{ 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tag' 
   }],
+  
   time_complexity: { type: String },
   space_complexity: { type: String },
+  
   solved: {
     type: Boolean,
     default: false
   },
-  solvedAt: { type: Date, default: null }
+  solvedAt: { type: Date, default: null },
+
+  // 🔥 NEW: Visibility setting for the Public tab
+  visibility: {
+    type: String,
+    enum: ['Private', 'Public'],
+    default: 'Private'
+  },
+  
+  // 🔥 NEW: Array of emails this problem is shared with for the Shared tab
+  sharedWith: [{
+    type: String, 
+    trim: true
+  }]
+
 }, { timestamps: true });
 
 const Problem = mongoose.model('Problem', problemSchema);
