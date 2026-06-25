@@ -15,10 +15,9 @@ import adminFileRoutes from './routes/admin/fileRoutes.js';
 import adminNoteRoutes from './routes/admin/noteRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import todoRoutes from './routes/todoRoutes.js';
-
-
+import quizRoutes from './routes/quizRoutes.js';
+import studyRoutes from './routes/studyRoutes.js';
 const app = express();
-
 // Middleware
 app.use(express.json());
 app.use(cors());
@@ -34,8 +33,9 @@ app.use('/api/admin/users', adminUserRoutes);
 app.use('/api/admin/files', adminFileRoutes);
 app.use('/api/admin/notes', adminNoteRoutes);
 app.use('/api/ai', aiRoutes);
-
+app.use('/api/quiz', quizRoutes);
 app.use('/api/todos', todoRoutes);
+app.use('/api/study', studyRoutes);
 const PORT = process.env.PORT || 5000;
 
 // Database Connection & Server Start
